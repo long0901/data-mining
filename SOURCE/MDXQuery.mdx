@@ -1,0 +1,51 @@
+﻿--Câu 1: Đếm số bất động sản được bán ra theo từng tháng, năm
+SELECT NON EMPTY [Measures].[Fact Count] ON COLUMNS,
+NON EMPTY ([Dim Sale Time].[Month].CHILDREN,[Dim Sale Time].[Year].CHILDREN)
+ON ROWS FROM [WH];
+
+--Câu 2: Thống kê tổng doanh số của bất động sản được bán ra theo loại bất động sản là “Commercial” và tiện ích của bất động sản là “ELO”
+SELECT NON EMPTY [Measures].[SALES PRICE] ON COLUMNS,
+NON EMPTY ([Dim Type].[BUILDTYPE].CHILDREN * [Dim Utility].[UTILITY AVAIL].CHILDREN) ON ROWS
+FROM ( SELECT ([Dim Utility].[UTILITY AVAIL].&[ELO]) ON COLUMNS
+FROM ( SELECT ([Dim Type].[BUILDTYPE].&[Commercial]) ON COLUMNS
+FROM [WH]));
+
+--Câu 3: Trong năm 2009 truy vấn 3 khu vực có nhiều bất động sản được bán ra nhất
+SELECT [Measures].[Fact Count] ON COLUMNS,
+NON EMPTY GENERATE([Dim Sale Time].[Year].&[2009], TOPCOUNT([Dim Sale Time].[Year].CurrentMember * [Dim Area].[AREA].CHILDREN, 3, [Measures].[Fact Count])) ON ROWS FROM [WH];
+
+--Câu 4: Thống kê những bất động sản có giá bán ra > 23000000.
+SELECT NON EMPTY [Measures].[SALES PRICE] ON COLUMNS,
+NON EMPTY FILTER ([Dim Property].[PRT ID].CHILDREN, [Measures].[SALES PRICE] > 23000000) ON ROWS FROM [WH];
+
+--Câu 5: Thống kê tổng tiền phí cho người môi giới theo từng loại bất động sản trong quý bán 3 năm 2011
+SELECT NON EMPTY [Measures].[REG FEE] ON COLUMNS,
+NON EMPTY ([Dim Sale Time].[Quarter].&[3], [Dim Sale Time].[Year].&[2011], [Dim Type].[BUILDTYPE].CHILDREN) ON ROWS FROM [WH];
+
+--Câu 6: Thống kê Top 3 tiện ích của bất động sản có số lượng được bán ra cao nhất
+SELECT [Measures].[Fact Count] ON COLUMNS, 
+NON EMPTY (TOPCOUNT([Dim Utility].[UTILITY AVAIL].CHILDREN, 3, [Measures].[Fact Count])) ON ROWS
+FROM [WH];
+
+-- Câu 7: Thống kê tổng số bất động sản được bán ra trong năm 2004, 2011, 2014 có chất lượng tất cả các phòng trên 4.0 điểm
+SELECT NON EMPTY { [Measures].[Fact Count] } ON COLUMNS,
+ NON EMPTY { ([Dim Sale Time].[Year].[Year].ALLMEMBERS * [Dim Quality Score].[QS OVERALL].[QS OVERALL].ALLMEMBERS ) } ON ROWS
+ FROM ( SELECT ( [Dim Quality Score].[QS OVERALL].&[4.1] : [Dim Quality Score].[QS OVERALL].&[4.9] ) ON COLUMNS
+ FROM ( SELECT ( { [Dim Sale Time].[Year].&[2004], [Dim Sale Time].[Year].&[2011], [Dim Sale Time].[Year].&[2014] } ) ON COLUMNS
+ FROM [WH]));
+
+--Câu 8: Thống kê tổng số bất động sản đã bán theo từng khu vực với tình trạng của bất động sản khi bán là AbNormal
+SELECT NON EMPTY { [Measures].[Fact Count] } ON COLUMNS,
+ NON EMPTY { ([Dim Area].[AREA].[AREA].ALLMEMBERS ) } ON ROWS
+ FROM ( SELECT ( { [Dim Condition].[SALE COND].&[AbNormal] } ) ON COLUMNS
+ FROM [WH])
+ WHERE ( [Dim Condition].[SALE COND].&[AbNormal] );
+
+--Câu 9: Thống kê tổng số bất động sản được bán ra theo quý bán và khu vực.
+SELECT NON EMPTY [Measures].[Fact Count] ON COLUMNS,
+NON EMPTY ([Dim Sale Time].[Quarter].CHILDREN, [Dim Area].[AREA].CHILDREN ) ON ROWS FROM [WH];
+
+--Câu 10: Thống kê tổng số bất động sản được bán ra theo từng khu vực và loại bất động sản.
+SELECT NON EMPTY [Measures].[Fact Count] ON COLUMNS,
+NON EMPTY ([Dim Area].[AREA].CHILDREN, [Dim Type].[BUILDTYPE].CHILDREN) ON ROWS FROM [WH];
+
